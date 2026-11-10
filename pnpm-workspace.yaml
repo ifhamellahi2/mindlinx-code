@@ -1,0 +1,4 @@
+# pnpm 12 reads settings from this file, not from package.json.
+# esbuild is a drizzle-kit dependency; its install script links the platform binary.
+allowBuilds:
+  esbuild: true

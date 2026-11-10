@@ -1,0 +1,3 @@
+ALTER TABLE "workspaces" ADD COLUMN "initial_for_user_id" uuid;--> statement-breakpoint
+ALTER TABLE "workspaces" ADD CONSTRAINT "workspaces_initial_for_user_id_users_id_fk" FOREIGN KEY ("initial_for_user_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+CREATE UNIQUE INDEX "workspaces_initial_for_user_unique" ON "workspaces" USING btree ("initial_for_user_id") WHERE "workspaces"."initial_for_user_id" is not null;
