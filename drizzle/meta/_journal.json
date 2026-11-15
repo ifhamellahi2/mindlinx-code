@@ -36,6 +36,13 @@
       "when": 1794222384577,
       "tag": "0004_initial_workspace",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1794773016601,
+      "tag": "0005_business_profile_onboarding",
+      "breakpoints": true
     }
   ]
 }

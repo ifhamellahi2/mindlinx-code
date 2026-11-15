@@ -6,6 +6,7 @@ import {
   jsonb,
   pgTable,
   text,
+  timestamp,
   unique,
   uniqueIndex,
   uuid,
@@ -24,6 +25,11 @@ export const businessProfiles = pgTable(
     website: text("website"),
     industry: text("industry"),
     description: text("description"),
+    // Fixed-key document validated by Zod in src/lib/business-profile. Kept as
+    // jsonb so onboarding questions can evolve without a migration per field.
+    details: jsonb("details").notNull().default(sql`'{}'::jsonb`),
+    // NULL = draft. Set on explicit completion, cleared on an explicit draft save.
+    completedAt: timestamp("completed_at", { withTimezone: true }),
     ...timestamps(),
     deletedAt: deletedAtColumn(),
   },

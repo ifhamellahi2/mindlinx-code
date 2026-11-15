@@ -94,7 +94,11 @@ try {
   run(process.execPath, [
     "--conditions=react-server",
     "--import", "tsx",
-    "--test", "tests/auth-context.test.ts", "tests/workspace-route.test.ts",
+    "--test",
+    "tests/auth-context.test.ts",
+    "tests/workspace-route.test.ts",
+    "tests/business-profile.test.ts",
+    "tests/business-profile-route.test.ts",
   ], { env });
 } finally {
   removeContainer();

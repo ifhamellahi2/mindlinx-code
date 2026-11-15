@@ -1,6 +1,12 @@
 // Typed failures so route handlers can map them to HTTP without string
 // matching. `status` is the intended response code; 404 is deliberate for
 // workspaces the caller cannot see, so existence never leaks.
+import {
+  BusinessProfileConflictError,
+  PayloadTooLargeError,
+  ValidationError,
+} from "@/lib/business-profile/errors";
+
 export class UnauthorizedError extends Error {
   readonly status = 401;
 
@@ -76,5 +82,14 @@ export function errorResponse(error: unknown): Response {
   if (error instanceof WorkspaceNotFoundError) return json(error, 404);
   if (error instanceof WorkspaceNotProvisionedError) return json(error, 409);
   if (error instanceof WorkspaceSelectionRequiredError) return json(error, 409);
+  if (error instanceof BusinessProfileConflictError) return json(error, 409);
+  if (error instanceof PayloadTooLargeError) return json(error, 413);
+  if (error instanceof ValidationError) {
+    // Field map is part of the contract; it contains validation messages only.
+    return Response.json(
+      { error: error.name, fields: error.fields },
+      { status: 400, headers: NO_STORE },
+    );
+  }
   throw error;
 }

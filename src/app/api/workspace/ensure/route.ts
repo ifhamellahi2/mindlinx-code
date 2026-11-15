@@ -1,23 +1,8 @@
 import { ensureWorkspaceContextForUser, requireSessionFromHeaders } from "@/lib/auth-context";
-import { errorResponse, InvalidOriginError } from "@/lib/auth-errors";
-import { env } from "@/lib/env.server";
+import { errorResponse } from "@/lib/auth-errors";
+import { assertTrustedOrigin } from "@/lib/http/origin";
 
 const NO_STORE = { "cache-control": "no-store" } as const;
-const TRUSTED_ORIGIN = new URL(env.BETTER_AUTH_URL).origin;
-
-// Better Auth's origin check covers /api/auth/* only, so this route guards itself.
-function assertTrustedOrigin(request: Request) {
-  const origin = request.headers.get("origin");
-  if (!origin) throw new InvalidOriginError("Missing Origin header");
-
-  let normalized: string;
-  try {
-    normalized = new URL(origin).origin;
-  } catch {
-    throw new InvalidOriginError("Malformed Origin header");
-  }
-  if (normalized !== TRUSTED_ORIGIN) throw new InvalidOriginError();
-}
 
 /**
  * First authenticated endpoint and the recovery point for a failed sign-up
