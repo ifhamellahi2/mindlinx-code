@@ -1,7 +1,8 @@
+import { redirect } from "next/navigation";
+
+// This route only redirects, so it has no instant UI to validate.
+export const instant = false;
+
 export default function Home() {
-  return (
-    <main className="flex min-h-screen items-center justify-center">
-      <h1 className="text-3xl font-semibold tracking-tight">MindLinx</h1>
-    </main>
-  );
+  redirect("/dashboard");
 }
