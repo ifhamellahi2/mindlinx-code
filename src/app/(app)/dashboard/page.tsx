@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Building2, Info, Mail, Search, Target } from "lucide-react";
 import {
@@ -7,6 +8,8 @@ import {
   type WorkspaceContext,
 } from "@/lib/auth-context";
 import { UnauthorizedError } from "@/lib/auth-errors";
+import { getBusinessProfile } from "@/lib/business-profile/repository";
+import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = {
   title: "Dashboard — MindLinx",
@@ -16,13 +19,7 @@ export const metadata: Metadata = {
 // The page reads the session via headers(), so it cannot prerender instantly.
 export const instant = false;
 
-const steps = [
-  {
-    icon: Building2,
-    title: "Understand your business",
-    description:
-      "Capture what your company sells, who it serves, and the signals that make an account worth pursuing.",
-  },
+const upcomingSteps = [
   {
     icon: Target,
     title: "Define your ideal customer",
@@ -59,6 +56,35 @@ export default async function DashboardPage() {
   const memberships = await listWorkspaceMemberships(context.userId);
   const workspace = memberships.find((item) => item.workspaceId === context.workspaceId);
 
+  // Direct repository read scoped to the session-resolved workspace, so no
+  // other tenant's profile can appear here. A failed read propagates to the
+  // framework error page rather than rendering a misleading "not started".
+  const profile = await getBusinessProfile(context.workspaceId);
+  const isComplete = profile?.completedAt != null;
+
+  const businessState = !profile
+    ? {
+        status: "Not started",
+        heading: "Set up your business",
+        description:
+          "Tell MindLinx what your business does so we can prepare your customer acquisition workspace.",
+        cta: "Set up business",
+      }
+    : isComplete
+      ? {
+          status: "Completed",
+          heading: "Your business profile is ready",
+          description:
+            "Your business information is saved. You can review or update it anytime.",
+          cta: "View business profile",
+        }
+      : {
+          status: "Draft",
+          heading: "Continue setting up your business",
+          description: "Your business profile is saved as a draft. Complete it when you're ready.",
+          cta: "Continue setup",
+        };
+
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-8 p-4 md:p-8">
       <section className="rounded-2xl border border-border/70 bg-card p-6 md:p-8">
@@ -74,38 +100,69 @@ export default async function DashboardPage() {
         </p>
       </section>
 
-      <section className="space-y-4">
+      <div className="space-y-4">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h2 className="text-lg font-semibold tracking-tight text-foreground">Getting started</h2>
-          <p className="text-xs text-muted-foreground">Four steps · onboarding coming soon</p>
+          <p className="text-xs text-muted-foreground">
+            Business profile is live · remaining steps coming soon
+          </p>
         </div>
 
+        <section className="rounded-2xl border border-border/70 bg-card p-6 md:p-8">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+              <Building2 className="size-4" aria-hidden="true" />
+              Business profile
+            </div>
+            <span className="rounded-full border border-border/70 px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+              {businessState.status}
+            </span>
+          </div>
+
+          <h3 className="mt-4 text-xl font-semibold tracking-tight text-foreground md:text-2xl">
+            {businessState.heading}
+          </h3>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
+            {businessState.description}
+          </p>
+          {isComplete && profile ? (
+            <p className="mt-3 text-sm text-foreground">
+              <span className="text-muted-foreground">Business name: </span>
+              {profile.name}
+            </p>
+          ) : null}
+
+          <Button asChild size="lg" className="mt-5 h-10">
+            <Link href="/onboarding">{businessState.cta}</Link>
+          </Button>
+        </section>
+
         <ol className="grid gap-4 sm:grid-cols-2">
-          {steps.map((step, index) => (
+          {upcomingSteps.map((step, index) => (
             <li key={step.title} className="rounded-xl border border-border/70 bg-card p-5">
               <div className="flex items-start justify-between gap-3">
                 <span className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-sm font-medium text-primary">
-                  {index + 1}
+                  {index + 2}
                 </span>
                 <span className="rounded-full border border-border/70 px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
                   Coming soon
                 </span>
               </div>
-              <h3 className="mt-4 flex items-center gap-2 text-sm font-medium text-foreground">
+              <h4 className="mt-4 flex items-center gap-2 text-sm font-medium text-foreground">
                 <step.icon className="size-4 text-muted-foreground" aria-hidden="true" />
                 {step.title}
-              </h3>
+              </h4>
               <p className="mt-1.5 text-sm leading-6 text-muted-foreground">{step.description}</p>
             </li>
           ))}
         </ol>
-      </section>
+      </div>
 
       <div className="flex items-start gap-3 rounded-xl border border-border/70 bg-secondary/40 p-4 text-sm leading-6 text-muted-foreground">
         <Info className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
         <p>
-          Guided onboarding is the next capability we are building. These steps are previews only —
-          no prospects, campaigns, or outreach are created yet.
+          The business profile is the first live step. The remaining steps are previews only — no
+          prospects, campaigns, or outreach are created yet.
         </p>
       </div>
     </div>
